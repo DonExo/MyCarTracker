@@ -43,6 +43,7 @@ class Vehicle(models.Model):
     created_at = models.DateTimeField(default=timezone.now)
     make = models.CharField(max_length=30, default="Audi")
     model = models.CharField(max_length=30, default="Q8")
+    is_favourite = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.make} {self.model} · #{self.pk}"
@@ -52,6 +53,8 @@ class Listing(models.Model):
     vehicle = models.ForeignKey(Vehicle, on_delete=models.PROTECT, related_name="listings")
     # Identity belongs to a website, independent of overlapping saved searches.
     adapter = models.CharField(max_length=40)
+    # Human-readable marketplace name; inferred from the scraper adapter, not user input.
+    vendor = models.CharField(max_length=120, blank=True, db_index=True)
     external_id = models.CharField(max_length=100)
     url = models.URLField(max_length=1000)
     title = models.CharField(max_length=300)

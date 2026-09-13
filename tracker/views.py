@@ -10,6 +10,7 @@ from django.db.models import Count, Exists, F, Max, Min, OuterRef, Prefetch, Q
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 
 from .forms import SourceForm
@@ -44,11 +45,17 @@ def listings_with_status():
 
 def vehicle_queryset():
     active = Q(listings__memberships__active=True)
+    dropped = active & Q(listings__previous_price__isnull=False) & Q(
+        listings__current_price__lt=F("listings__previous_price")
+    )
     return Vehicle.objects.annotate(
         active_count=Count("listings", filter=active, distinct=True),
         total_count=Count("listings", distinct=True),
         price_min=Min("listings__current_price", filter=active),
         price_max=Max("listings__current_price", filter=active),
+        price_drop=Max(
+            F("listings__previous_price") - F("listings__current_price"), filter=dropped
+        ),
         last_seen=Max("listings__last_seen"),
     ).filter(total_count__gt=0)
 
@@ -79,6 +86,9 @@ def dashboard(request):
     colour = request.GET.get("colour", "")
     if colour:
         advert_filters["colour"] = colour
+    vendor = request.GET.get("vendor", "")
+    if vendor:
+        advert_filters["vendor"] = vendor
     advert_search = Q()
     if search:
         advert_search = (
@@ -136,6 +146,9 @@ def dashboard(request):
         and price_from_value > price_to_value
     ):
         qs = qs.none()
+    favourite = request.GET.get("favourite") == "1"
+    if favourite:
+        qs = qs.filter(is_favourite=True)
     mode = request.GET.get("mode", "")
     if mode == "duplicates":
         qs = qs.filter(active_count__gt=1)
@@ -146,11 +159,14 @@ def dashboard(request):
             price_changed_at__gte=timezone.now() - timedelta(days=7),
         )
         qs = qs.filter(Exists(drops))
-    sort = request.GET.get("sort", "recent")
-    order = {"recent": "-last_seen", "price": "price_min", "price_desc": "-price_min"}.get(
-        sort, "-last_seen"
-    )
-    qs = qs.order_by(order, "pk").prefetch_related(
+    sort = request.GET.get("sort", "price")
+    order = {
+        "recent": "-last_seen",
+        "price": "price_min",
+        "price_desc": "-price_min",
+        "drop": "-price_drop",
+    }.get(sort, "price_min")
+    qs = qs.order_by("-is_favourite", order, "pk").prefetch_related(
         Prefetch(
             "listings",
             queryset=listings_with_status().order_by("-is_active", "current_price", "pk"),
@@ -179,6 +195,10 @@ def dashboard(request):
         .values_list("fuel", flat=True)
         .distinct()
         .order_by("fuel"),
+        "vendors": Listing.objects.exclude(vendor="")
+        .values_list("vendor", flat=True)
+        .distinct()
+        .order_by("vendor"),
         "price_choices": price_choices,
         "q": search,
         "year_from": year_from,
@@ -187,7 +207,9 @@ def dashboard(request):
         "price_to": price_to,
         "fuel": fuel,
         "colour": colour,
+        "vendor": vendor,
         "mode": mode,
+        "favourite": favourite,
         "sort": sort,
         "status": status,
         "latest_run": ScrapeRun.objects.select_related("source").first(),
@@ -198,6 +220,26 @@ def dashboard(request):
         else "tracker/dashboard.html"
     )
     return render(request, template, context)
+
+
+@login_required
+@require_POST
+def toggle_favourite(request, pk):
+    vehicle = get_object_or_404(Vehicle, pk=pk)
+    vehicle.is_favourite = not vehicle.is_favourite
+    vehicle.save(update_fields=["is_favourite"])
+    messages.success(
+        request,
+        "Added to favourites."
+        if vehicle.is_favourite
+        else "Removed from favourites.",
+    )
+    destination = request.POST.get("next", "")
+    if not url_has_allowed_host_and_scheme(
+        destination, allowed_hosts={request.get_host()}, require_https=request.is_secure()
+    ):
+        destination = ""
+    return redirect(destination or "dashboard")
 
 
 @login_required

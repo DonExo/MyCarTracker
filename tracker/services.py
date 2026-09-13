@@ -9,7 +9,7 @@ from django.utils import timezone
 
 from .matching import match_listing, split_listing
 from .models import Listing, PriceObservation, ScrapeRun, Source, SourceListing, Vehicle
-from .scrapers import REGISTRY
+from .scrapers import REGISTRY, vendor_for_adapter
 from .scrapers.base import ScrapeError
 
 logger = logging.getLogger(__name__)
@@ -55,13 +55,17 @@ def ingest(run, data, *, enriched=True):
     ).first()
     created = listing is None
     changed = False
+    vendor = vendor_for_adapter(run.source.adapter)
     if created:
         listing = Listing(
             vehicle=Vehicle.objects.create(),
             adapter=run.source.adapter,
+            vendor=vendor,
             external_id=data.external_id,
             first_seen=now,
         )
+    elif vendor:
+        listing.vendor = vendor
     # If a previously advertised VIN changes, don't contaminate a multi-advert group.
     if not created and data.vin and listing.vin and data.vin != listing.vin:
         if Listing.objects.filter(vehicle=listing.vehicle).count() > 1:

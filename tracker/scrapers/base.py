@@ -52,6 +52,8 @@ class SearchPage:
 
 class BaseScraper(ABC):
     allowed_hosts: set[str] = set()
+    # Public marketplace name shown in the UI and stored on each listing.
+    vendor: str = ""
 
     def __init__(self):
         self.client = httpx.Client(

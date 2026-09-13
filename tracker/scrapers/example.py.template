@@ -4,6 +4,7 @@ from .base import BaseScraper, ScrapeError
 
 class ExampleScraper(BaseScraper):
     allowed_hosts = {"www.example.com"}
+    vendor = "example.com"
 
     @classmethod
     def validate_search_url(cls, url):

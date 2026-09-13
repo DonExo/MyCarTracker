@@ -56,6 +56,7 @@ def parse_colour(soup):
 
 class MobileBgScraper(BaseScraper):
     allowed_hosts = {"www.mobile.bg", "mobile.bg"}
+    vendor = "mobile.bg"
 
     @classmethod
     def validate_search_url(cls, url):

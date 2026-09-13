@@ -56,7 +56,9 @@ by default; no default account or password is created.
 - Shows **€From–€To across currently active adverts for the same car**. This is
   distinct from the car's historical price range. Missing adverts are excluded
   from the current range, but their last price and history remain accessible.
-- Shows recent price drops, filters by year/fuel, and links to original adverts.
+- Shows recent price drops, filters by year/fuel/colour/vendor, and links to original adverts.
+- Records the marketplace (vendor) for every advert from its scraper adapter and
+  always offers a vendor filter on Cars.
 - Includes duplicate review, separate-advert controls, run history, and read-only
   inspection of collected records in Django admin.
 
@@ -110,8 +112,10 @@ The first implementation is `tracker/scrapers/mobile_bg.py`, based on Mobile.bg
 HTML inspected on 2026-09-13. To add another website:
 
 1. Copy `tracker/scrapers/example.py.template` to a new `.py` module.
-2. Implement its exact `allowed_hosts`, `validate_search_url()`, `parse_search()`
-   and `enrich()` methods. Return `SearchPage` and `ScrapedListing` objects.
+2. Implement its exact `allowed_hosts`, `vendor`, `validate_search_url()`,
+   `parse_search()` and `enrich()` methods. Return `SearchPage` and
+   `ScrapedListing` objects. Set `vendor` to the marketplace name, such as
+   `mobile.bg`; it is stored on each listing and drives the vendor filter.
 3. Register it in `tracker/scrapers/__init__.py` under a stable adapter key.
 4. Add sanitized HTML fixtures and parser tests. Rebuild the containers.
 5. Save a direct search URL in Searches; the registry selects its adapter.

@@ -12,3 +12,12 @@
 .filterbar select,.filterbar input{width:100%}
 @media(max-width:1100px){.dashboard-layout{grid-template-columns:1fr}.filterbar{border-right:0;border-bottom:1px solid var(--line);display:grid;grid-template-columns:1fr 1fr;gap:12px 14px}.filter-row{grid-template-columns:1fr}.filter-actions{grid-template-columns:1fr 1fr}}
 @media(max-width:650px){.filterbar{grid-template-columns:1fr;gap:10px}.filter-row{grid-template-columns:1fr}.filter-actions{grid-template-columns:1fr}}
+
+/* Favourite hearts */
+.car-title-row{display:flex;align-items:center;gap:8px;min-width:0}
+.car-title-row .car-title{min-width:0}
+.favourite-form{display:inline-flex;flex-shrink:0}
+.favourite-toggle{appearance:none;background:none;border:0;padding:2px;margin:0;line-height:0;cursor:pointer;color:#c3ccd8;transition:color .15s ease,transform .15s ease;border-radius:5px}
+.favourite-toggle svg{width:19px;height:19px;display:block;fill:currentColor}
+.favourite-toggle:hover{color:#e53935;transform:scale(1.12)}
+.favourite-toggle.active{color:#e53935}

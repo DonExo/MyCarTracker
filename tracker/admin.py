@@ -33,9 +33,9 @@ class ReadOnlyAdmin(admin.ModelAdmin):
 
 @admin.register(Listing)
 class ListingAdmin(ReadOnlyAdmin):
-    list_display = ["title", "vin", "current_price", "last_seen", "vehicle"]
+    list_display = ["title", "vin", "current_price", "last_seen", "vehicle", "vendor"]
     search_fields = ["title", "vin", "external_id"]
-    list_filter = ["fuel", "year", "adapter"]
+    list_filter = ["fuel", "year", "adapter", "vendor"]
 
 
 for model in [Vehicle, PriceObservation, ScrapeRun, DuplicateCandidate, GroupingEvent]:

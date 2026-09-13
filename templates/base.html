@@ -7,7 +7,8 @@
 <header class="topbar"><div class="container-fluid shell d-flex align-items-center justify-content-between gap-3 flex-wrap">
 <a class="brand" href="{% url 'dashboard' %}"><span class="brand-mark">M</span> MyCarTracker <span class="brand-label">Q8</span></a>
 {% if user.is_authenticated %}<nav aria-label="Main navigation" class="d-flex gap-1 flex-wrap">
-<a class="nav-item {% if request.resolver_match.url_name == 'dashboard' or request.resolver_match.url_name == 'vehicle' %}selected{% endif %}" href="{% url 'dashboard' %}">Cars</a>
+<a class="nav-item {% if request.resolver_match.url_name == 'dashboard' and request.GET.favourite != '1' or request.resolver_match.url_name == 'vehicle' %}selected{% endif %}" href="{% url 'dashboard' %}">Cars</a>
+<a class="nav-item {% if request.resolver_match.url_name == 'dashboard' and request.GET.favourite == '1' %}selected{% endif %}" href="{% url 'dashboard' %}?favourite=1">Favourites</a>
 <a class="nav-item {% if request.resolver_match.url_name == 'duplicates' %}selected{% endif %}" href="{% url 'duplicates' %}">Duplicate review</a>
 <a class="nav-item {% if request.resolver_match.url_name == 'sources' %}selected{% endif %}" href="{% url 'sources' %}">Searches</a>
 <a class="nav-item {% if request.resolver_match.url_name == 'runs' %}selected{% endif %}" href="{% url 'runs' %}">Scrape history</a>
