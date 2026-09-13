@@ -1,0 +1,20 @@
+"""Rename this file, implement the selectors, add fixtures, then register the class."""
+from .base import BaseScraper, ScrapeError
+
+
+class ExampleScraper(BaseScraper):
+    allowed_hosts = {"www.example.com"}
+
+    @classmethod
+    def validate_search_url(cls, url):
+        cls.validate_url(url)
+        raise ValueError("Implement allowed search paths for this website first")
+
+    def parse_search(self, html, url):
+        # Return SearchPage(listings, next_url, errors, advertised_total).
+        # Emit an error for unparsed cards; never interpret a challenge as zero results.
+        raise ScrapeError("Search parser not implemented")
+
+    def enrich(self, listing, html):
+        # Verify the advert ID, then enrich normalized identity/details and return listing.
+        raise ScrapeError("Detail parser not implemented")

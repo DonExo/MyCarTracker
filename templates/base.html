@@ -1,0 +1,20 @@
+{% load static %}<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow"><title>{% block title %}MyCarTracker{% endblock %}</title>
+<link rel="stylesheet" href="{% static 'vendor/bootstrap.min.css' %}"><link rel="stylesheet" href="{% static 'app.css' %}">
+<script src="{% static 'vendor/htmx.min.js' %}" defer></script><script src="{% static 'app.js' %}" defer></script>
+{% block head %}{% endblock %}</head><body>
+<header class="topbar"><div class="container-fluid shell d-flex align-items-center justify-content-between gap-3 flex-wrap">
+<a class="brand" href="{% url 'dashboard' %}"><span class="brand-mark">M</span> MyCarTracker <span class="brand-label">Q8</span></a>
+{% if user.is_authenticated %}<nav aria-label="Main navigation" class="d-flex gap-1 flex-wrap">
+<a class="nav-item {% if request.resolver_match.url_name == 'dashboard' or request.resolver_match.url_name == 'vehicle' %}selected{% endif %}" href="{% url 'dashboard' %}">Cars</a>
+<a class="nav-item {% if request.resolver_match.url_name == 'duplicates' %}selected{% endif %}" href="{% url 'duplicates' %}">Duplicate review</a>
+<a class="nav-item {% if request.resolver_match.url_name == 'sources' %}selected{% endif %}" href="{% url 'sources' %}">Searches</a>
+<a class="nav-item {% if request.resolver_match.url_name == 'runs' %}selected{% endif %}" href="{% url 'runs' %}">Scrape history</a>
+</nav><form method="post" action="{% url 'logout' %}">{% csrf_token %}<button class="btn btn-sm btn-outline-secondary">Sign out</button></form>{% endif %}
+</div></header>
+<main class="container-fluid shell py-4">
+{% for message in messages %}<div role="status" class="alert {% if message.tags == 'error' %}alert-danger{% else %}alert-info{% endif %}">{{ message }}</div>{% endfor %}
+{% block content %}{% endblock %}</main>
+<footer class="container-fluid shell py-4 small text-secondary">MyCarTracker · Asking prices in EUR · Advert claims are not independently verified.</footer>
+</body></html>

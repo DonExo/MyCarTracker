@@ -1,0 +1,26 @@
+{% extends 'base.html' %}{% load humanize %}{% block content %}
+<div class="page-heading"><div><p class="eyebrow">MARKET WATCH</p><h1>Audi Q8</h1><p class="text-secondary mb-0">Every advert. One car. The full price story.</p></div><a class="btn btn-primary" href="{% url 'sources' %}">Manage searches</a></div>
+<div class="stats-grid my-4">
+<div class="stat"><span>Active cars</span><strong>{{ stats.cars }}</strong></div>
+<div class="stat"><span>Active adverts</span><strong>{{ stats.adverts }}</strong></div>
+<div class="stat"><span>Cars with multiple adverts</span><strong>{{ stats.duplicates }}</strong></div>
+<a class="stat review-stat" href="{% url 'duplicates' %}"><span>Possible duplicates to review</span><strong>{{ stats.review }} <span class="fs-5">↗</span></strong></a>
+</div>
+<section class="panel p-0 overflow-hidden">
+<div class="dashboard-layout">
+<form method="get" class="filterbar" hx-get="{% url 'dashboard' %}" hx-target="#results" hx-push-url="true">
+<div class="filter-row filter-search"><label for="q">Search adverts</label><input class="form-control" name="q" id="q" value="{{ q }}" placeholder="Title, VIN or location"></div>
+<div class="filter-row"><div><label for="year_from">Year from</label><select class="form-select" id="year_from" name="year_from"><option value="">Any</option>{% for y in years %}<option value="{{ y }}" {% if year_from == y|stringformat:'s' %}selected{% endif %}>{{ y }}</option>{% endfor %}</select></div><div><label for="year_to">Year to</label><select class="form-select" id="year_to" name="year_to"><option value="">Any</option>{% for y in years %}<option value="{{ y }}" {% if year_to == y|stringformat:'s' %}selected{% endif %}>{{ y }}</option>{% endfor %}</select></div></div>
+<div class="filter-row"><div><label for="price_from">Price from (€)</label><select class="form-select" id="price_from" name="price_from"><option value="">Any</option>{% for price in price_choices %}<option value="{{ price }}" {% if price_from == price|stringformat:'s' %}selected{% endif %}>{{ price|intcomma }}</option>{% endfor %}</select></div><div><label for="price_to">Price to (€)</label><select class="form-select" id="price_to" name="price_to"><option value="">Any</option>{% for price in price_choices %}<option value="{{ price }}" {% if price_to == price|stringformat:'s' %}selected{% endif %}>{{ price|intcomma }}</option>{% endfor %}</select></div></div>
+<div class="filter-row filter-search"><label for="fuel">Fuel</label><select class="form-select" id="fuel" name="fuel"><option value="">All fuels</option>{% for f in fuels %}<option {% if fuel == f %}selected{% endif %}>{{ f }}</option>{% endfor %}</select></div>
+<div class="filter-row filter-search"><label for="colour">Color</label><select class="form-select" id="colour" name="colour"><option value="">All colors</option>{% for c in colours %}<option value="{{ c }}" {% if colour == c %}selected{% endif %}>{{ c }}</option>{% endfor %}</select></div>
+<div class="filter-row filter-search"><label for="mode">Show</label><select class="form-select" id="mode" name="mode"><option value="">All cars</option><option value="duplicates" {% if mode == 'duplicates' %}selected{% endif %}>Multiple adverts</option><option value="drops" {% if mode == 'drops' %}selected{% endif %}>Price drops · 7 days</option></select></div>
+<div class="filter-row filter-search"><label for="sort">Sort</label><select class="form-select" id="sort" name="sort"><option value="recent">Last seen</option><option value="price" {% if sort == 'price' %}selected{% endif %}>Lowest price</option><option value="price_desc" {% if sort == 'price_desc' %}selected{% endif %}>Highest price</option></select></div>
+<div class="filter-row filter-search"><label for="status">Availability</label><select class="form-select" name="status" id="status"><option value="active">Active</option><option value="all" {% if status == 'all' %}selected{% endif %}>Include missing</option></select></div>
+<div class="filter-row filter-actions"><button class="btn btn-dark">Apply</button><a class="small" href="{% url 'dashboard' %}">Reset</a></div>
+</form>
+<div class="dashboard-content">{% include 'tracker/vehicle_table.html' %}</div>
+</div>
+</section>
+{% if latest_run %}<p class="small text-secondary mt-3">Latest scrape: <a href="{% url 'runs' %}">{{ latest_run.get_status_display }}</a> · {{ latest_run.started_at|date:'d M Y, H:i' }} · {{ latest_run.source.name }}</p>{% endif %}
+{% endblock %}

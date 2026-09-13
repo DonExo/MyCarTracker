@@ -1,0 +1,8 @@
+{% extends 'base.html' %}{% block title %}Sign in · MyCarTracker{% endblock %}{% block content %}
+<section class="login-panel panel"><p class="eyebrow">YOUR PRIVATE GARAGE</p><h1 class="h3">Sign in to MyCarTracker</h1>
+<p class="text-secondary">Follow the Q8 market, one day at a time.</p>
+{% if form.errors %}<div class="alert alert-danger">Username or password was incorrect.</div>{% endif %}
+<form method="post">{% csrf_token %}<input type="hidden" name="next" value="{{ next }}">
+<label class="form-label" for="id_username">Username</label><input class="form-control mb-3" id="id_username" name="username" autocomplete="username" required autofocus>
+<label class="form-label" for="id_password">Password</label><input class="form-control mb-4" id="id_password" name="password" type="password" autocomplete="current-password" required>
+<button class="btn btn-primary w-100">Sign in</button></form></section>{% endblock %}

@@ -1,0 +1,63 @@
+x-app: &app
+  build: .
+  env_file: .env
+  environment:
+    DJANGO_DEBUG: "1"
+    POSTGRES_HOST: db
+    POSTGRES_DB: cartracker
+    POSTGRES_USER: cartracker
+  init: true
+  restart: unless-stopped
+
+services:
+  db:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_DB: cartracker
+      POSTGRES_USER: cartracker
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cartracker -d cartracker"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+    restart: unless-stopped
+  migrate:
+    <<: *app
+    restart: "no"
+    command: ["sh", "-c", "python manage.py migrate --noinput && python manage.py seed_sources"]
+    depends_on:
+      db:
+        condition: service_healthy
+  web:
+    <<: *app
+    command: ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+    environment:
+      DJANGO_DEBUG: "1"
+      POSTGRES_HOST: db
+      POSTGRES_DB: cartracker
+      POSTGRES_USER: cartracker
+    volumes:
+      - .:/app
+    ports:
+      - "${WEB_BIND:-127.0.0.1}:${WEB_PORT:-8000}:8000"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health/', timeout=5)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+  scheduler:
+    <<: *app
+    command: ["python", "manage.py", "run_scheduler"]
+    stop_grace_period: 30s
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+volumes:
+  postgres_data:

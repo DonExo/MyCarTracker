@@ -1,0 +1,50 @@
+name: CI
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_USER: cartracker
+          POSTGRES_PASSWORD: ci-test-password
+          POSTGRES_DB: cartracker
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U cartracker -d cartracker"
+          --health-interval 5s --health-timeout 5s --health-retries 12
+    env:
+      DJANGO_SECRET_KEY: ci-test-key-not-for-deployment
+      POSTGRES_HOST: localhost
+      POSTGRES_PASSWORD: ci-test-password
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install uv==0.12.11
+      - run: uv sync --frozen
+      - run: uv run ruff check .
+      - run: uv run python manage.py collectstatic --noinput
+      - run: uv run python manage.py makemigrations --check --dry-run
+      - run: uv run python manage.py test tracker
+  docker-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: cp .env.example .env
+      - run: docker compose config --quiet
+      # Do not start the scheduler in CI; smoke tests must not scrape external sites.
+      - run: docker compose up -d --build --wait db web
+      - run: curl --fail http://127.0.0.1:8000/health/
+      - run: curl --fail http://127.0.0.1:8000/accounts/login/
+      - if: failure()
+        run: docker compose logs
+      - if: always()
+        run: docker compose down -v

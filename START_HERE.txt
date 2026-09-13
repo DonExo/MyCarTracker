@@ -1,0 +1,25 @@
+MyCarTracker - completed source code
+
+The GitHub push was not completed because authenticated write access was
+unavailable in the build session. No service is deployed yet.
+
+To run this ZIP copy:
+1. Extract it and enter the MyCarTracker directory.
+2. Copy .env.example to .env and replace both secret placeholders.
+3. Run: docker compose up -d --build
+4. Run: docker compose exec web python manage.py createsuperuser
+5. Visit http://localhost:8000, sign in, open Searches and click Scrape now.
+See README.md for remote access, scheduling, backups and testing.
+
+The included source-history.bundle preserves the complete Git commit.
+To restore a Git checkout in a separate directory:
+  git clone source-history.bundle ../MyCarTracker-git
+  cd ../MyCarTracker-git
+  git remote set-url origin https://github.com/DonExo/MyCarTracker.git
+  git push -u origin main
+Authenticate using your normal GitHub credentials (never share them in chat).
+
+Commit: 5a96243dc6ca09cf154521b8ec6ae201c69e10ac
+Validation: 31 tests passed on SQLite, Django checks and static build passed;
+live Mobile.bg search + detail fetch passed. Docker/PostgreSQL CI is configured
+but could not be executed in this build session. Browser visual QA was unavailable.
